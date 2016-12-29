@@ -1,0 +1,133 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'optparse'
+
+class String
+  def unindent
+    gsub /^#{self[/\A[ \t]*/]}/, ''
+  end
+end
+
+options = {}
+opt_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: bluesky [command] [options]"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+end
+
+opt_parser.parse!
+
+case ARGV[0]
+when "new"
+  path = File.absolute_path(ARGV[1])
+  abort "#{path} already exist! Aborting!" if File.exist?(path)
+
+  title = ARGV[1].capitalize
+
+  FileUtils.mkdir_p([
+    File.join(path, 'app/models'),
+    File.join(path, 'app/views'),
+    File.join(path, 'app/controllers'),
+  ])
+
+  IO.write File.join(path, 'Gemfile'), <<-RUBY.unindent
+    source 'https://rubygems.org'
+
+    gem 'opal', '~> 0.10'
+    gem 'clearwater', '1.0.0.rc4'
+    gem 'bluesky', path: '../'
+  RUBY
+
+  IO.write File.join(path, 'app/application.rb'), <<-RUBY.unindent
+    require 'bluesky'
+    include Bluesky
+
+    require_tree './models'
+    require_tree './views'
+    require_tree './controllers'
+
+    $app = Class.new(Application) do
+
+      def root_view_controller
+        @root_view_controller ||= NavigationController.new(RootController.new)
+      end
+
+    end.new
+    $app.debug!
+    $app.run
+  RUBY
+
+  IO.write File.join(path, 'app/controllers/root_controller.rb'), <<-RUBY.unindent
+    class RootController < ViewController
+
+      attribute :name, 'World'
+
+      def view
+        HelloView(name: name)
+      end
+
+      def change_name(name)
+        self.name = name
+        notify(self, :name_changed, self.name)
+      end
+
+    end
+  RUBY
+
+  IO.write File.join(path, 'app/views/hello_view.rb'), <<-RUBY.unindent
+    class HelloView < PureComponent
+
+      attribute :name
+
+      def render
+        div [header, name_input]
+      end
+
+      def header
+        h1("Hello \#{name}")
+      end
+
+      def name_input
+        handler = -> (event) { dispatch(:change_name, event.target.value) }
+        label ['Change name: ',
+               input(type: :text, value: name, oninput: handler)]
+      end
+
+    end
+  RUBY
+
+
+  IO.write File.join(path, 'config.ru'), <<-RUBY.unindent
+    require 'bundler'
+    Bundler.require
+
+    run Opal::Server.new { |s|
+      s.main = 'application'
+      s.append_path 'app'
+      s.index_path = 'index.html.erb'
+    }
+  RUBY
+
+  IO.write File.join(path, 'index.html.erb'), <<-ERB.unindent
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>#{title}</title>
+      </head>
+      <body>
+        <%= javascript_include_tag 'application' %>
+      </body>
+    </html>
+  ERB
+
+  Dir.chdir(path) do
+    system("bundle install")
+  end
+
+else
+  puts opt_parser
+end

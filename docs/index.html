@@ -1,0 +1,412 @@
+<!DOCTYPE html><html><!-- Built with spec-md --><head><meta charset="utf-8"><title>Bluesky</title><link href="spec.css" rel="stylesheet"><link href="highlight.css" rel="stylesheet"></head><body><header><h1>Bluesky</h1><section id="intro"><p><a href="https://github.com/johnsusi/bluesky"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/121cd7cbdc3e4855075ea8b558508b91ac463ac2/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_green_007200.png"></a> <em>Working Draft &ndash; December 2016</em></p><p><strong>Introduction</strong></p><p>Bluesky is an opinionated application framework based on <a href="https://github.com/clearwater-rb/clearwater/">Clearwater</a>.</p><p>This project grew out of about a years work on a large project using Opal and Clearwater.</p><div class="spec-note">Being opinionated means that this framework is not for everyone. The authors background is in desktop and mobile app development and that is of course reflected in the design. If things feel weird or you find yourself working against the framework then maybee this is not for you.</div><p>This documentation is built using <a href="http://leebyron.com/spec-md/">Spec Markdown</a></p></section><div class="spec-toc"><div class="title">Contents</div><ol><li><a href="#sec-Getting-started"><span class="spec-secid">1</span>Getting started</a></li><li><a href="#sec-Application"><span class="spec-secid">2</span>Application</a><input hidden class="toggle" type="checkbox" checked id="_toggle_2" /><label for="_toggle_2"></label><ol><li><a href="#sec-Application-delegate"><span class="spec-secid">2.1</span>Application delegate</a></li></ol></li><li><a href="#sec-ViewController"><span class="spec-secid">3</span>ViewController</a><input hidden class="toggle" type="checkbox" checked id="_toggle_3" /><label for="_toggle_3"></label><ol><li><a href="#sec-View-events"><span class="spec-secid">3.1</span>View events</a></li><li><a href="#sec-Standard-dispatch-methods"><span class="spec-secid">3.2</span>Standard dispatch methods</a></li><li><a href="#sec-NavigationController"><span class="spec-secid">3.3</span>NavigationController</a></li></ol></li><li><a href="#sec-PureComponent"><span class="spec-secid">4</span>PureComponent</a><input hidden class="toggle" type="checkbox" checked id="_toggle_4" /><label for="_toggle_4"></label><ol><li><a href="#sec-Motivating-example"><span class="spec-secid">4.1</span>Motivating example</a></li><li><a href="#sec-Extended-DSL"><span class="spec-secid">4.2</span>Extended DSL</a></li><li><a href="#sec-Custom-DSL"><span class="spec-secid">4.3</span>Custom DSL</a></li><li><a href="#sec-Dispatching"><span class="spec-secid">4.4</span>Dispatching</a></li><li><a href="#sec-Caching"><span class="spec-secid">4.5</span>Caching</a></li></ol></li><li><a href="#sec-Dispatcher"><span class="spec-secid">5</span>Dispatcher</a><input hidden class="toggle" type="checkbox" checked id="_toggle_5" /><label for="_toggle_5"></label><ol><li><a href="#sec-Asynchrous-by-design"><span class="spec-secid">5.1</span>Asynchrous by design</a></li><li><a href="#sec-Blocks-vs-Promise"><span class="spec-secid">5.2</span>Blocks vs Promise</a></li><li><a href="#sec-Intercept-dispatch-requests"><span class="spec-secid">5.3</span>Intercept dispatch requests</a></li></ol></li><li><a href="#sec-Examples"><span class="spec-secid">A</span>Examples</a><input hidden class="toggle" type="checkbox" checked id="_toggle_A" /><label for="_toggle_A"></label><ol><li><a href="#sec-Fetch-data-using-REST-and-keep-UI-in-sync"><span class="spec-secid">A.1</span>Fetch data using REST and keep UI in sync</a></li></ol></li></ol></div></header><section id="sec-Getting-started" secid="1"><h2><span class="spec-secid" title="link to this section"><a href="#sec-Getting-started">1</a></span>Getting started</h2><p>Install <em>Bluesky</em> using</p><pre><code>gem install bluesky
+</code></pre><p>or using <em>Bundler</em></p><pre><code><span class="hljs-comment"># Gemfile</span>
+source <span class="hljs-string">'https://rubygems.org'</span>
+
+gem <span class="hljs-string">'rack'</span>
+gem <span class="hljs-string">'opal-sprockets'</span>
+gem <span class="hljs-string">'bluesky'</span>
+</code></pre><p>Then create a <code>index.html.erb</code> file</p><pre><code><span class="hljs-meta">&lt;!DOCTYPE html&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">"utf-8"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>Bluesky<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">%=</span> <span class="hljs-attr">javascript_include_tag</span> '<span class="hljs-attr">application</span>' %&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
+</code></pre><p>and a <code>config.ru</code> file</p><pre><code><span class="hljs-keyword">require</span> <span class="hljs-string">'bundler'</span>
+Bundler.<span class="hljs-keyword">require</span>
+
+<span class="hljs-comment"># Instructions: bundle in this directory</span>
+<span class="hljs-comment"># then run bundle exec rackup to start the server</span>
+<span class="hljs-comment"># and browse to localhost:9292</span>
+
+run Opal::Server.new { <span class="hljs-params">|s|</span>
+  s.main = <span class="hljs-string">'application'</span>
+  s.append_path <span class="hljs-string">'.'</span>
+  s.index_path = <span class="hljs-string">'index.html.erb'</span>
+}
+</code></pre><p>Finally create an <code>application.rb</code> containing</p><pre><code><span class="hljs-keyword">require</span> <span class="hljs-string">'bluesky'</span>
+<span class="hljs-keyword">include</span> Bluesky
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloView</span> &lt; PureComponent</span>
+
+  attribute <span class="hljs-symbol">:name</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">render</span></span>
+    div [h1(<span class="hljs-string">"Hello <span class="hljs-subst">#{name}</span>"</span>), name_input]
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">name_input</span></span>
+    handler = -&gt; (event) { dispatch(<span class="hljs-symbol">:change_name</span>, event.target.value) }
+    label [<span class="hljs-string">'Change name: '</span>, input({ <span class="hljs-symbol">type:</span>    <span class="hljs-string">'text'</span>,
+                                    <span class="hljs-symbol">value:</span>   name,
+                                    <span class="hljs-symbol">oninput:</span> handler })]
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> &lt; ViewController</span>
+
+  attribute <span class="hljs-symbol">:name</span>, <span class="hljs-string">'World'</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">view</span></span>
+    HelloView(<span class="hljs-symbol">name:</span> name)
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">change_name</span><span class="hljs-params">(name)</span></span>
+    <span class="hljs-keyword">self</span>.name = name
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>
+
+
+$app = Class.new(Application) <span class="hljs-keyword">do</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">root_view_controller</span></span>
+    @root_view_controller <span class="hljs-params">||</span>= HelloController.new
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>.new
+
+$app.debug!
+$app.run
+</code></pre></section><section id="sec-Application" secid="2"><h2><span class="spec-secid" title="link to this section"><a href="#sec-Application">2</a></span>Application</h2><pre><code>$app = Class.new(Bluesky::Application) <span class="hljs-keyword">do</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">root_view_controller</span></span>
+    @root_view_controller <span class="hljs-params">||</span>= NavigationController.new(LayoutController.new)
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>.new
+
+$app.debug!
+$app.run
+</code></pre><section id="sec-Application-delegate" secid="2.1"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Application-delegate">2.1</a></span>Application delegate</h3><p><code>Application</code> supports adding a delegate to get notified of different actions.</p><pre><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ApplicationDelegate</span></span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">dispatch</span><span class="hljs-params">(target, actions, *payload)</span></span>
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">dispatch_resolved</span><span class="hljs-params">(target, actions, *payload, result)</span></span>
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">dispatch_rejected</span><span class="hljs-params">(error, target, actions, *payload)</span></span>
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>
+</code></pre><p><strong>dispatch</strong></p><p>Called when Adding a dispatch request to the dispatch queue.</p><p><strong>dispatch_resolved</strong></p><p>Called when the dispatch request has been performed.</p></section></section><section id="sec-ViewController" secid="3"><h2><span class="spec-secid" title="link to this section"><a href="#sec-ViewController">3</a></span>ViewController</h2><p>ViewControllers are responsible for the UI logic in an application. ViewControllers feed data into presentational components (<code>PureComponent</code>) and respond to user interactions.</p><pre><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> &lt; ViewController</span>
+
+  attribute <span class="hljs-symbol">:name</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">view</span></span>
+    HelloView(<span class="hljs-symbol">name:</span> name)
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">change_name</span><span class="hljs-params">(name)</span></span>
+    <span class="hljs-keyword">self</span>.name = name
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre><section id="sec-View-events" secid="3.1"><h3><span class="spec-secid" title="link to this section"><a href="#sec-View-events">3.1</a></span>View events</h3><p>A <code>ViewController</code> gets notified when changes are made to its views visibility.</p><p><strong>view_will_appear</strong></p><p>Called before the views <code>render</code> method is called for the first time.</p><p><strong>view_did_appear</strong></p><p>Called after the first render is completed and the <em>DOM</em> has reconciled.</p><p><strong>view_will_disappear</strong></p><p>Called when the view is about to be removed from the render. <em>DOM</em> nodes are still mounted.</p><p><strong>view_did_disappear</strong></p><p>Called when the view has been removed from the render and the <em>DOM</em> has reconciled. All previously mounted <em>DOM</em> nodes have been unmounted.</p><div class="spec-note">DOM nodes may still be reused for other views so make sure you have cleaned up after yourself.</div></section><section id="sec-Standard-dispatch-methods" secid="3.2"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Standard-dispatch-methods">3.2</a></span>Standard dispatch methods</h3><p>A <code>ViewController</code> supports the following dispatch methods out of the box.</p><p>There is a more complete description of the dispatch mechanism in Section 5.</p><p><strong>refresh</strong></p><p>Triggers a rerendering of the entire application. Caching still applies and refresh should rarely be of any use.</p><p><strong>force_update</strong></p><p>Triggers a force rerendering of the application and disables caching for the ViewControllers view. This could be used when something changed outside of your views that the views depend on. For example changing language in the app.</p></section><section id="sec-NavigationController" secid="3.3"><h3><span class="spec-secid" title="link to this section"><a href="#sec-NavigationController">3.3</a></span>NavigationController</h3><p><code>NavigationController</code> is modelled after the iOS <code>UINavigationController</code> and fills a similar function in <em>Bluesky</em>.</p><p><code>NavigationController</code> manages a stack of <code>ViewControllers</code> that can be pushed and popped.</p><pre><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> &lt; ViewController</span>
+  <span class="hljs-comment"># ...</span>
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RootController</span> &lt; ViewController</span>
+  <span class="hljs-comment"># ...</span>
+<span class="hljs-keyword">end</span>
+
+navigation_controller = NavigationController.new(RootController)
+
+navigation_controller.push_view_controller(HelloController.new)
+
+navigation_controller.pop_view_controller
+
+</code></pre><p>All descendants of <code>ViewController</code> can access its nearest ancestor of type <code>NavigationController</code> using the <code>navigation_controller</code> property.</p><pre><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> &lt; ViewController</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">back</span></span>
+    navigation_controller.pop_view_controller
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre></section></section><section id="sec-PureComponent" secid="4"><h2><span class="spec-secid" title="link to this section"><a href="#sec-PureComponent">4</a></span>PureComponent</h2><p>Views or presentational components are what the user will see and interact with. Views are built using <em>Clearwater</em> tags (h1, div, ...), composites (could be plain functions) and <code>PureComponents</code> where <code>PureComponents</code> are the most powerful of them all.</p><section id="sec-Motivating-example" secid="4.1"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Motivating-example">4.1</a></span>Motivating example</h3><pre><code><span class="hljs-keyword">require</span> <span class="hljs-string">'bluesky'</span>
+<span class="hljs-keyword">include</span> Bluesky
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloView</span> &lt; PureComponent</span>
+  attribute <span class="hljs-symbol">:name</span>, <span class="hljs-string">'World'</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">render</span></span>
+    h1 [<span class="hljs-string">"Hello <span class="hljs-subst">#{name}</span>"</span>]
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> &lt; ViewController</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">view</span></span>
+    HelloView()
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>
+
+Class.new(Application) <span class="hljs-keyword">do</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">root_view_controller</span></span>
+    @root_view_controller <span class="hljs-params">||</span>= HelloController.new
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>.new.run
+</code></pre></section><section id="sec-Extended-DSL" secid="4.2"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Extended-DSL">4.2</a></span>Extended DSL</h3><p><em>Bluesky</em> uses <em>Clearwater</em> for rendering so all tags in <em>Clearwater</em> are available by default. <em>Bluesky</em> also extends the DSL with Builders.</p><pre><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">render</span></span>
+  form <span class="hljs-keyword">do</span> <span class="hljs-params">|form|</span>
+    form &lt;&lt; div <span class="hljs-keyword">do</span> <span class="hljs-params">|div|</span>
+      div &lt;&lt; label <span class="hljs-keyword">do</span> <span class="hljs-params">|label|</span>
+        label.<span class="hljs-keyword">for</span> = <span class="hljs-string">'emailField'</span>
+        label &lt;&lt; <span class="hljs-string">'Email address'</span>
+      <span class="hljs-keyword">end</span>
+      div &lt;&lt; input <span class="hljs-keyword">do</span> <span class="hljs-params">|input|</span>
+        input.type        = <span class="hljs-symbol">:email</span>
+        input.id          = <span class="hljs-string">'emailField'</span>
+        input.<span class="hljs-keyword">class</span>       = <span class="hljs-string">'form-control'</span>
+        input.placeholder = <span class="hljs-string">"Enter emailHelp"</span>
+      <span class="hljs-keyword">end</span>
+    <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre></section><section id="sec-Custom-DSL" secid="4.3"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Custom-DSL">4.3</a></span>Custom DSL</h3><p>Build custom modules</p><pre><code><span class="hljs-class"><span class="hljs-keyword">module</span> <span class="hljs-title">CustomDSL</span></span>
+
+  <span class="hljs-keyword">include</span> Bluesky::DSL <span class="hljs-comment"># Optional, but gives access to h1, div and all PureComponents</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">Button</span><span class="hljs-params">(text)</span></span>
+    button({ <span class="hljs-symbol">onclick:</span> -&gt; (event) { <span class="hljs-keyword">yield</span> event <span class="hljs-keyword">if</span> block_given? } }, [text])
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">LabelInput</span><span class="hljs-params">(name, label, type)</span></span>
+    handler = -&gt; (event) { dispatch(<span class="hljs-symbol">:form_change</span>, event.target.name, event.target.value)}
+    label({ <span class="hljs-symbol">for:</span> name }, [label, input({ <span class="hljs-symbol">name:</span> name,
+                                         <span class="hljs-symbol">type:</span> type,
+                                         <span class="hljs-symbol">oninput:</span> handler,
+                                         <span class="hljs-symbol">onchange:</span> handler })])
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomComponent</span> &lt; PureComponent</span>
+
+  <span class="hljs-keyword">include</span> CustomDSL
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">render</span></span>
+    div [ Button(<span class="hljs-string">"hello"</span>) { puts <span class="hljs-string">'hello'</span> },
+          LabelInput(<span class="hljs-string">'name'</span>, <span class="hljs-string">'Change name'</span>, <span class="hljs-symbol">:text</span>) { <span class="hljs-params">|name|</span> puts name } ]
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>
+</code></pre><p>Extend the <em>Bluesky</em> DSL.</p><pre><code><span class="hljs-class"><span class="hljs-keyword">module</span> <span class="hljs-title">Bluesky</span></span>
+  <span class="hljs-class"><span class="hljs-keyword">module</span> <span class="hljs-title">DSL</span></span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">textarea</span><span class="hljs-params">(attributes = {}, contents = <span class="hljs-literal">nil</span>)</span></span>
+      attributes[<span class="hljs-symbol">:class</span>] = <span class="hljs-string">"form-control"</span>
+      tag(<span class="hljs-string">'textarea'</span>, attributes, contents)
+    <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre></section><section id="sec-Dispatching" secid="4.4"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Dispatching">4.4</a></span>Dispatching</h3><pre><code><span class="hljs-keyword">require</span> <span class="hljs-string">'bluesky'</span>
+<span class="hljs-keyword">include</span> Bluesky
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloView</span> &lt; PureComponent</span>
+
+  attribute <span class="hljs-symbol">:name</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">render</span></span>
+    div [title, name_input]
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">title</span></span>
+    h1 [<span class="hljs-string">"Hello <span class="hljs-subst">#{name}</span>"</span>]
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">name_input</span></span>
+    label [
+      <span class="hljs-string">'Your name: '</span>,
+      input({ <span class="hljs-symbol">type:</span> <span class="hljs-string">'text'</span>, <span class="hljs-symbol">value:</span> name, <span class="hljs-symbol">oninput:</span> -&gt; (event) {
+        dispatch(<span class="hljs-symbol">:change_name</span>, event.target.value)
+      }})
+    ]
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> &lt; ViewController</span>
+
+  attribute <span class="hljs-symbol">:name</span>, <span class="hljs-string">'World'</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">view</span></span>
+    HelloView(<span class="hljs-symbol">name:</span> name)
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">change_name</span><span class="hljs-params">(name)</span></span>
+    <span class="hljs-keyword">self</span>.name = name
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+Class.new(Application) <span class="hljs-keyword">do</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">root_view_controller</span></span>
+    @root_view_controller <span class="hljs-params">||</span>= HelloController.new
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>.new.run
+
+</code></pre><div class="spec-note">In a <code>PureComponent</code> the dispatch target is fixed to <code>@delegate</code>. While it is possible to call <code>@delegate.dispatch(target, action, ...)</code> it is not recommended. Tying your view to a dispatch target is bad design.</div></section><section id="sec-Caching" secid="4.5"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Caching">4.5</a></span>Caching</h3></section></section><section id="sec-Dispatcher" secid="5"><h2><span class="spec-secid" title="link to this section"><a href="#sec-Dispatcher">5</a></span>Dispatcher</h2><p>Dispatcher is the main tool for performing actions in <em>Bluesky</em>.</p><p>All dispatch requests (unless intercepted) go through the dispatch queue in <code>Application</code>.</p><section id="sec-Asynchrous-by-design" secid="5.1"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Asynchrous-by-design">5.1</a></span>Asynchrous by design</h3><p>A dispatch request is never performed synchronously. Instead it has to pass through the application dispatch queue where each request is executed in turn and on the main event loop.</p><p>Dispatch <em>targets</em> are just objects and <em>actions</em> are just methods on those objects.</p><pre><code>dispatch(<span class="hljs-string">"hello"</span>, <span class="hljs-symbol">:upcase</span>).<span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span> <span class="hljs-params">|str|</span>
+  puts str <span class="hljs-comment"># HELLO</span>
+<span class="hljs-keyword">end</span>
+</code></pre><p>Dispatcher plays an important part when separating views from controllers and models. A view never need to know anything about the target of the dispatch except an ubiquitous naming of the actions. In fact it is strongly recommended to design a view with just a data object and a mock dispatcher. They should be completely independent of any <em>controller</em> or <em>model</em>.</p><p>Dispatch always returns a promise that you can chain. At the end of each dispatch chain there is a <code>refresh</code> attached so you do not have to worry about keeping your UI refreshed.</p><p>Here is a larger example of a <em>Store</em> that might have to do asynchronous work before returning a value. The dispatch client does not see any difference.</p><pre><code><span class="hljs-class"><span class="hljs-keyword">module</span> <span class="hljs-title">Store</span></span>
+  <span class="hljs-keyword">include</span> DOMHelpers
+  extend <span class="hljs-keyword">self</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">fetch</span><span class="hljs-params">(what)</span></span>
+    <span class="hljs-keyword">case</span> what
+    <span class="hljs-keyword">when</span> <span class="hljs-symbol">:fruit</span>
+      [<span class="hljs-symbol">:apple</span>, <span class="hljs-symbol">:orange</span>, <span class="hljs-symbol">:banana</span>].sample
+    <span class="hljs-keyword">when</span> <span class="hljs-symbol">:beverage</span>
+      delay(<span class="hljs-symbol">seconds:</span> <span class="hljs-number">3</span>) { <span class="hljs-symbol">:milk</span> }
+    <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+dispatch(Store, <span class="hljs-symbol">:fetch</span>, <span class="hljs-symbol">:fruit</span>).<span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span> <span class="hljs-params">|fruit|</span>
+  puts fruit
+<span class="hljs-keyword">end</span>
+
+dispatch(Store, <span class="hljs-symbol">:fetch</span>, <span class="hljs-symbol">:beverage</span>).<span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span> <span class="hljs-params">|beverage|</span>
+  puts beverage
+<span class="hljs-keyword">end</span>
+</code></pre><p>Promises are easy to chain so multiple asynchronous requests can be made before reaching the target.</p></section><section id="sec-Blocks-vs-Promise" secid="5.2"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Blocks-vs-Promise">5.2</a></span>Blocks vs Promise</h3><p>Dispatch returns a promise and thus can be chained using <code>.then</code> but sometimes the dispatch target can take a block and this can lead to some confusion.</p><pre><code><span class="hljs-class"><span class="hljs-keyword">module</span> <span class="hljs-title">Store</span></span>
+  <span class="hljs-keyword">include</span> DOMHelpers
+  extend <span class="hljs-keyword">self</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">foo</span></span>
+    puts <span class="hljs-string">"foo <span class="hljs-subst">#{block_given?}</span>"</span>
+  <span class="hljs-keyword">end</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bar</span></span>
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+dispatch(Store, <span class="hljs-symbol">:foo</span>)                     <span class="hljs-comment"># 'foo false'</span>
+dispatch(Store, <span class="hljs-symbol">:foo</span>).<span class="hljs-keyword">then</span> {}             <span class="hljs-comment"># 'foo false'</span>
+dispatch(Store, <span class="hljs-symbol">:foo</span>) {}                  <span class="hljs-comment"># 'foo true'</span>
+
+dispatch(Store, <span class="hljs-symbol">:bar</span>).<span class="hljs-keyword">then</span> { puts <span class="hljs-string">'bar'</span> } <span class="hljs-comment"># 'bar'</span>
+dispatch(Store, <span class="hljs-symbol">:bar</span>) { puts <span class="hljs-string">'bar'</span> }      <span class="hljs-comment"># &lt;nothing&gt;</span>
+</code></pre><p>The distinction here is important. If you supply a block by mistake when you intended to chain the promise, the block will never be called, or worse if the target action supports optional blocks, alter the dispatch result.</p></section><section id="sec-Intercept-dispatch-requests" secid="5.3"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Intercept-dispatch-requests">5.3</a></span>Intercept dispatch requests</h3><div class="spec-note">This is an advanced topic not for everyday use</div><p>A <code>ViewController</code> may intercept any dispatch request traveling up the parent hierarchy by implementing:</p><pre><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">dispatch</span><span class="hljs-params">(target, action, *payload, &amp;block)</span></span>
+<span class="hljs-keyword">end</span>
+</code></pre><p>It is possible to route or filter dispatch requests here by issuing a new <code>dispatch</code>.</p><pre><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">dispatch</span><span class="hljs-params">(target, action, *payload, &amp;block)</span></span>
+  <span class="hljs-keyword">case</span> target
+  <span class="hljs-keyword">when</span> <span class="hljs-symbol">:store</span>
+    <span class="hljs-comment"># Route target to Store</span>
+    parent.dispatch(Store, action, *payload, &amp;block)
+  <span class="hljs-keyword">else</span>
+    <span class="hljs-comment"># Otherwise send the dispatch up the chain</span>
+    parent.dispatch(target, action, *payload, &amp;block)
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+</code></pre><div class="spec-note">You should always send your dispatch up the ancestor chain by calling dispatch on parent.</div></section></section><section id="sec-Examples" secid="A"><h2><span class="spec-secid" title="link to this section"><a href="#sec-Examples">A</a></span>Examples</h2><section id="sec-Fetch-data-using-REST-and-keep-UI-in-sync" secid="A.1"><h3><span class="spec-secid" title="link to this section"><a href="#sec-Fetch-data-using-REST-and-keep-UI-in-sync">A.1</a></span>Fetch data using REST and keep UI in sync</h3><p>This example renders a list of people on the planet <em>Tatooine</em>. Data is supplied by <a href="http://swapi.co/">The Starwars API</a>. Since this is <em>REST</em> several roundtrips are needed to get all the residents. Dispatch ensures that all requests are done and the final callback invoked before calling refresh on the entire application causing a render.</p><pre><code><span class="hljs-keyword">require</span> <span class="hljs-string">'bluesky'</span>
+<span class="hljs-keyword">include</span> Bluesky
+
+<span class="hljs-keyword">require</span> <span class="hljs-string">'bowser/http'</span>
+
+<span class="hljs-class"><span class="hljs-keyword">module</span> <span class="hljs-title">PersonStore</span></span>
+  <span class="hljs-keyword">include</span> DOMHelper
+
+  extend <span class="hljs-keyword">self</span>
+
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">residents_of_tatooine</span></span>
+    Bowser::HTTP.fetch(<span class="hljs-string">'http://swapi.co/api/planets/1/'</span>).<span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span> <span class="hljs-params">|response|</span>
+      Promise.<span class="hljs-keyword">when</span>(*response.json[<span class="hljs-symbol">:residents</span>].map <span class="hljs-keyword">do</span> <span class="hljs-params">|resident_uri|</span>
+        Bowser::HTTP.fetch(resident_uri).<span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span> <span class="hljs-params">|resident|</span>
+          resident.json[<span class="hljs-symbol">:name</span>]
+        <span class="hljs-keyword">end</span>
+      <span class="hljs-keyword">end</span>)
+    <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Person</span> &lt; PureComponent</span>
+  attribute <span class="hljs-symbol">:name</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">render</span></span>
+    li [name]
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PersonList</span> &lt; PureComponent</span>
+  attribute <span class="hljs-symbol">:persons</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">render</span></span>
+    ol persons.map { <span class="hljs-params">|person|</span> Person(person) }
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PersonController</span> &lt; ViewController</span>
+  attribute <span class="hljs-symbol">:names</span>, []
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">view</span></span>
+    PersonList(<span class="hljs-symbol">persons:</span> names)
+  <span class="hljs-keyword">end</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">view_will_appear</span></span>
+    dispatch(PersonStore, <span class="hljs-symbol">:residents_of_tatooine</span>).<span class="hljs-keyword">then</span> <span class="hljs-keyword">do</span> <span class="hljs-params">|residents|</span>
+      <span class="hljs-keyword">self</span>.names = residents.map { <span class="hljs-params">|name|</span> { <span class="hljs-symbol">name:</span> name } }
+    <span class="hljs-keyword">end</span>
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>
+
+$app = Class.new(Application) <span class="hljs-keyword">do</span>
+  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">root_view_controller</span></span>
+    @root_view_controller <span class="hljs-params">||</span>= PersonController.new
+  <span class="hljs-keyword">end</span>
+<span class="hljs-keyword">end</span>.new
+
+$app.debug!
+$app.run
+</code></pre></section></section><footer>Written in <a href="http://leebyron.com/spec-md/" target="_blank">Spec Markdown</a>.</footer><input hidden class="spec-sidebar-toggle" type="checkbox" id="spec-sidebar-toggle" aria-hidden /><label for="spec-sidebar-toggle" aria-hidden>&#x2630;</label><div class="spec-sidebar" aria-hidden><div class="spec-toc"><div class="title"><a href="#">Bluesky</a></div><ol><li id="_sidebar_1"><a href="#sec-Getting-started"><span class="spec-secid">1</span>Getting started</a></li><li id="_sidebar_2"><a href="#sec-Application"><span class="spec-secid">2</span>Application</a><input hidden class="toggle" type="checkbox" id="_sidebar_toggle_2" /><label for="_sidebar_toggle_2"></label><ol><li id="_sidebar_2.1"><a href="#sec-Application-delegate"><span class="spec-secid">2.1</span>Application delegate</a></li></ol></li><li id="_sidebar_3"><a href="#sec-ViewController"><span class="spec-secid">3</span>ViewController</a><input hidden class="toggle" type="checkbox" id="_sidebar_toggle_3" /><label for="_sidebar_toggle_3"></label><ol><li id="_sidebar_3.1"><a href="#sec-View-events"><span class="spec-secid">3.1</span>View events</a></li><li id="_sidebar_3.2"><a href="#sec-Standard-dispatch-methods"><span class="spec-secid">3.2</span>Standard dispatch methods</a></li><li id="_sidebar_3.3"><a href="#sec-NavigationController"><span class="spec-secid">3.3</span>NavigationController</a></li></ol></li><li id="_sidebar_4"><a href="#sec-PureComponent"><span class="spec-secid">4</span>PureComponent</a><input hidden class="toggle" type="checkbox" id="_sidebar_toggle_4" /><label for="_sidebar_toggle_4"></label><ol><li id="_sidebar_4.1"><a href="#sec-Motivating-example"><span class="spec-secid">4.1</span>Motivating example</a></li><li id="_sidebar_4.2"><a href="#sec-Extended-DSL"><span class="spec-secid">4.2</span>Extended DSL</a></li><li id="_sidebar_4.3"><a href="#sec-Custom-DSL"><span class="spec-secid">4.3</span>Custom DSL</a></li><li id="_sidebar_4.4"><a href="#sec-Dispatching"><span class="spec-secid">4.4</span>Dispatching</a></li><li id="_sidebar_4.5"><a href="#sec-Caching"><span class="spec-secid">4.5</span>Caching</a></li></ol></li><li id="_sidebar_5"><a href="#sec-Dispatcher"><span class="spec-secid">5</span>Dispatcher</a><input hidden class="toggle" type="checkbox" id="_sidebar_toggle_5" /><label for="_sidebar_toggle_5"></label><ol><li id="_sidebar_5.1"><a href="#sec-Asynchrous-by-design"><span class="spec-secid">5.1</span>Asynchrous by design</a></li><li id="_sidebar_5.2"><a href="#sec-Blocks-vs-Promise"><span class="spec-secid">5.2</span>Blocks vs Promise</a></li><li id="_sidebar_5.3"><a href="#sec-Intercept-dispatch-requests"><span class="spec-secid">5.3</span>Intercept dispatch requests</a></li></ol></li><li id="_sidebar_A"><a href="#sec-Examples"><span class="spec-secid">A</span>Examples</a><input hidden class="toggle" type="checkbox" id="_sidebar_toggle_A" /><label for="_sidebar_toggle_A"></label><ol><li id="_sidebar_A.1"><a href="#sec-Fetch-data-using-REST-and-keep-UI-in-sync"><span class="spec-secid">A.1</span>Fetch data using REST and keep UI in sync</a></li></ol></li></ol></div><script>
+(function () {
+var currentSection;
+var numberedSections = [];
+
+var sections = document.getElementsByTagName('section');
+for (var i = 0; i < sections.length; i++) {
+  if (sections[i].getAttribute('secid')) {
+    numberedSections.push(sections[i]);
+  }
+}
+
+var scrollPos = window.scrollY;
+var pending = false;
+window.addEventListener('scroll', function (e) {
+  scrollPos = window.scrollY;
+  if (!pending) {
+    pending = true;
+    window.requestAnimationFrame(function () {
+      updateSectionFocus(scrollPos);
+      pending = false;
+    });
+  }
+});
+
+function updateSectionFocus(pos) {
+  var readLine = pos + document.documentElement.clientHeight / 4;
+
+  var focusedSection;
+  for (var n = numberedSections.length - 1; n >= 0; n--) {
+    if (numberedSections[n].offsetTop < readLine) {
+      focusedSection = numberedSections[n];
+      break;
+    }
+  }
+
+  var secid = focusedSection && focusedSection.getAttribute('secid');
+  if (secid !== currentSection) {
+    currentSection && fold(currentSection, false);
+    secid && fold(secid, true);
+    currentSection = secid;
+  }
+}
+
+function fold(secid, check) {
+  document.getElementById('_sidebar_' + secid).className = check ? 'viewing' : '';
+  var sections = secid.split('.');
+  while (sections.length) {
+    var toggle = document.getElementById('_sidebar_toggle_' + sections.join('.'));
+    if (toggle) {
+      toggle.checked = check;
+    }
+    sections.pop();
+  }
+}
+
+updateSectionFocus(window.scrollY);
+})();</script></div></body></html>
