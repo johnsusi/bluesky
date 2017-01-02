@@ -38,8 +38,11 @@ opt_parser.parse!
 case ARGV[0]
 when "major"
   options[:version][0] += 1
+  options[:version][1] = 0
+  options[:version][2] = 0
 when "minor"
   options[:version][1] += 1
+  options[:version][2] = 0
 when "patch"
   options[:version][2] += 1
 else
@@ -51,6 +54,7 @@ puts options[:version].join('.')
 
 
 text = "module Bluesky\n  VERSION = \"#{options[:version].join('.')}\"\nend\n"
-IO.write(version_file, text)
+puts text
+#IO.write(version_file, text)
 
-system("git commit #{version_file} -m #{options[:message]}")
+#system("git commit #{version_file} -m #{options[:message]}")
