@@ -17,6 +17,7 @@ end
 options = {
   docs: false,
   force: false,
+  message: 'Version %s'
   version: Bluesky::VERSION.split(".").map(&:to_i)
 }
 
@@ -69,11 +70,8 @@ IO.write(version_file, text)
 
 options[:message].gsub!('%s', version)
 
-commit_extra = ''
-commit_extra << " -m \"#{options[:message]}\"" if options[:message]
-
 system("git commit #{version_file} -m \"Version #{version}\"")
 
-system("git tag -a -d v#{version} #{commit_extra}")
+system("git tag -a -d v#{version} -m \"#{options[:message]}\"")
 
 system("git push && git push --tags")
