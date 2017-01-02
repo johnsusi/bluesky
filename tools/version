@@ -7,12 +7,14 @@ require 'fileutils'
 require 'optparse'
 
 def update_docs!
-  `./mkdocs`
+  `#{File.expand_path('../mkdocs', __FILE__)}`
 end
 
 def git_clean?
   `git status --porcelain`.split(/\n/).select { |line| !line.start_with? '??' }.empty?
 end
+
+update_docs!
 
 abort "Git working directory not clean" unless git_clean?
 
