@@ -42,6 +42,7 @@ when "patch"
   options[:version][2] += 1
 else
   puts opt_parser
+  exit
 end
 
 puts options[:version].join('.')
