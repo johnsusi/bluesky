@@ -14,20 +14,27 @@ def git_clean?
   `git status --porcelain`.split(/\n/).select { |line| !line.start_with? '??' }.empty?
 end
 
-update_docs!
-
-abort "Git working directory not clean" unless git_clean?
-
 options = {
+  docs: false,
+  force: false,
   version: Bluesky::VERSION.split(".").map(&:to_i)
 }
 
 opt_parser = OptionParser.new do |opts|
   opts.banner = "Usage: version [major | minor | patch] [-m <commit-msg>]"
 
+  opts.on("--docs", "Build documentation") do
+    options[:docs] = true
+  end
+
+  opts.on("-f", "--force", "Skip checks") do
+    options[:force] = true
+  end
+
   opts.on("-m", "--message=<msg>", "Use the given <msg> as the commit message.") do |msg|
     options[:message] = msg
   end
+
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     options[:verbose] = v
   end
@@ -50,11 +57,23 @@ else
   exit
 end
 
-puts options[:version].join('.')
+update_docs!
 
+abort "Git working directory not clean" unless git_clean? || options[:force]
 
-text = "module Bluesky\n  VERSION = \"#{options[:version].join('.')}\"\nend\n"
-puts text
-#IO.write(version_file, text)
+version = options[:version].join('.')
 
-#system("git commit #{version_file} -m #{options[:message]}")
+text = "module Bluesky\n  VERSION = \"#{version}\"\nend\n"
+
+IO.write(version_file, text)
+
+options[:message].gsub!('%s', version)
+
+commit_extra = ''
+commit_extra << " -m \"#{options[:message]}\"" if options[:message]
+
+system("git commit #{version_file} -m \"Version #{version}\"")
+
+system("git tag -a -d v#{version} #{commit_extra}")
+
+system("git push && git push --tags")
