@@ -72,6 +72,7 @@ options[:message].gsub!('%s', version)
 
 system("git commit #{version_file} -m \"Version #{version}\"")
 
+puts "git tag -a -d v#{version} -m \"#{options[:message]}\""
 system("git tag -a -d v#{version} -m \"#{options[:message]}\"")
 
 system("git push && git push --tags")
