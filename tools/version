@@ -6,6 +6,10 @@ require_relative version_file
 require 'fileutils'
 require 'optparse'
 
+def update_docs!
+  `./mkdocs`
+end
+
 def git_clean?
   `git status --porcelain`.split(/\n/).select { |line| !line.start_with? '??' }.empty?
 end

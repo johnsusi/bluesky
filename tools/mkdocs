@@ -27,6 +27,4 @@ file.write("\n")
 file.rewind
 system("spec-md #{file.path} > #{index_path}")
 
-system("git commit #{index_path} -m 'Updated docs'")
-
 # file.close
