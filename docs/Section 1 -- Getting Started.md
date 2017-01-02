@@ -1,12 +1,20 @@
 # Getting started
 
+## Using the bluesky gem
+
 Install *Bluesky* using
 
 ```
 gem install bluesky
 ```
 
-or using *Bundler*
+and create a new project
+
+```
+bluesky new hello
+```
+
+## Manual files
 
 ```ruby
 # Gemfile
