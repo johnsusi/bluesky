@@ -17,7 +17,7 @@ end
 options = {
   docs: false,
   force: false,
-  message: 'Version %s'
+  message: 'Version %s',
   version: Bluesky::VERSION.split(".").map(&:to_i)
 }
 
