@@ -17,17 +17,17 @@ end
 
 class Application < Bluesky::Application
 
-  root_view_controller RootViewController
+  def root_view_controller
+    @root_view_controller ||= RootViewController.new
+  end
 
 end
 
 describe Application do
   context 'when run' do
     it 'calls render on the root_view_controller' do
-      logger = double()
       application = Application.new
-      application.logger = logger
-      expect(logger).to receive(:render).with(application)
+      expect(application.root_view_controller).to receive(:render)
       application.run
     end
   end

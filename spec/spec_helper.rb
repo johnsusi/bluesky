@@ -19,9 +19,6 @@
 require 'bundler/setup'
 Bundler.setup
 
-require 'clearwater'
-require 'bluesky'
-
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
@@ -35,7 +32,10 @@ RSpec.configure do |config|
     # ...rather than:
     #     # => "be bigger than 2"
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+    expectations.syntax = :expect
   end
+
+  config.alias_example_to :they
 
   # rspec-mocks config goes here. You can use an alternate test double
   # library (such as bogus or mocha) by changing the `mock_with` option here.
@@ -106,4 +106,20 @@ RSpec.configure do |config|
   # as the one that triggered the failure.
   Kernel.srand config.seed
 =end
+end
+
+RSpec::Matchers.define :appear do
+  match do |actual|
+    expect(actual).to receive(:view_will_appear).ordered
+    # expect(actual).to receive(:render).ordered
+    # expect(actual).to receive(:view).ordered
+    expect(actual).to receive(:view_did_appear).ordered
+  end
+end
+
+RSpec::Matchers.define :disappear do
+  match do |actual|
+    expect(actual).to receive(:view_will_disappear).ordered
+    expect(actual).to receive(:view_did_disappear).ordered
+  end
 end
