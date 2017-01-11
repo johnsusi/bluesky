@@ -1,7 +1,7 @@
 Bluesky
 -------
 
-*Working Draft - December 2016*
+*Working Draft - January 2017*
 
 **Introduction**
 

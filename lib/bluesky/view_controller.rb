@@ -1,3 +1,7 @@
+require 'clearwater'
+require_relative './dom_helper'
+require_relative './dsl'
+
 module Bluesky
 
   class ViewController
@@ -29,7 +33,7 @@ module Bluesky
       end
     end
 
-    attr_accessor :children, :parent, :data
+    attr_accessor :children, :parent, :data, :appearance
 
     def initialize(*_, children: [], parent: nil, data: {})
       @children = children
@@ -62,11 +66,13 @@ module Bluesky
 
     def begin_appearance_transition(appearing)
       if appearing
-        raise "Invalid appearance #{@appearance} when appearing" if @appearance != :disappeared
+        return unless @appearance == :disappeared
+        # raise "Invalid appearance #{@appearance} when appearing" if @appearance != :disappeared
         @appearance = :appearing
         view_will_appear()
       else
-        raise "Invalid appearance #{@appearance} when disappearing" if @appearance != :appeared
+        return unless @appearance == :appeared
+        # raise "Invalid appearance #{@appearance} when disappearing" if @appearance != :appeared
         @appearance = :disappearing
         view_will_disappear()
       end
@@ -81,7 +87,7 @@ module Bluesky
         @appearance = :disappeared
         view_did_disappear()
       else
-        raise "Invalid appearance #{@appearance} when transitioning"
+        # raise "Invalid appearance #{@appearance} when transitioning"
       end
     end
 

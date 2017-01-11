@@ -27,8 +27,8 @@ Gem::Specification.new do |s|
     'lib/bluesky/view_controller.rb'
   ]
   s.test_files = [
-    'spec/spec_helper.rb',
-    'spec/bluesky_spec.rb'
+    # 'spec/spec_helper.rb',
+    # 'spec/view_controller_spec.rb'
   ]
 
   s.require_paths = [
@@ -38,8 +38,10 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'opal', '~> 0.10'
   s.add_runtime_dependency 'clearwater', '1.0.0.rc4'
 
-  s.add_development_dependency 'opal-rspec'
-  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'minitest'
   s.add_development_dependency 'rake'
+  # s.add_development_dependency 'opal-rspec'
+  # s.add_development_dependency 'rspec', "~> 3.2"
+  # s.add_development_dependency 'fuubar'
 
 end
