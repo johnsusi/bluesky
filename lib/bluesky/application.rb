@@ -4,6 +4,7 @@ module Bluesky
   class Application
 
     include DOMHelper
+    include TryHelper
 
     # Top level ViewController
     attr_accessor :root_view_controller
@@ -58,7 +59,7 @@ module Bluesky
     #   event:   (Symbol) The event symbol
     #   payload: (Array)  Additional arguments to pass along
     def notify(source, event, *payload)
-      @delegate.try(source, event, *payload)
+      try(@delegate, source, event, *payload)
       puts "#{event} #{payload}" if debug?
     end
 
@@ -75,7 +76,9 @@ module Bluesky
       raise 'root_view_controller must be defined in Application' unless root_view_controller
       PureComponent.install_hooks(debug?)
       root_view_controller.parent = self
-      router = RUBY_ENGINE != 'opal' ? Clearwater::Router.new(location: 'http://localhost:9292/') : nil
+      router = RUBY_ENGINE != 'opal' ?
+        Clearwater::Router.new(location: 'http://localhost:9292/') :
+        Clearwater::Router.new
       @clearwater = Clearwater::Application.new(
         component: root_view_controller,
         router: router
