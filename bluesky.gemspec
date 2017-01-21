@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.files       = [
     'lib/bluesky.rb',
     'lib/bluesky/application.rb',
+    'lib/bluesky/dsl.rb',
     'lib/bluesky/helpers.rb',
     'lib/bluesky/navigation_controller.rb',
     'lib/bluesky/pure_component.rb',
