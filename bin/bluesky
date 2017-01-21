@@ -3,7 +3,9 @@
 require 'fileutils'
 require 'optparse'
 
-require 'bluesky'
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+
+require 'bluesky/version'
 
 class String
   def unindent
