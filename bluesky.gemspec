@@ -8,12 +8,12 @@ require 'bluesky/version'
 Gem::Specification.new do |s|
   s.name        = 'bluesky'
   s.version     = Bluesky::VERSION
-  s.date        = '2016-12-24'
+  s.date        = '2017-01-21'
   s.summary     = 'An app framework for Clearwater'
-  s.description = 'An app framework for Clearwater'
+  s.description = 'An app framework built on top of opal and clearwater'
   s.authors     = ['John Susi']
   s.email       = 'john@susi.se'
-  s.homepage    = 'http://rubygems.org/gems/bluesky'
+  s.homepage    = 'http://susi.se/bluesky/'
   s.license     = 'MIT'
   s.executables << 'bluesky'
   s.files       = [
@@ -35,6 +35,5 @@ Gem::Specification.new do |s|
   ]
   s.add_runtime_dependency 'opal', '~> 0.10'
   s.add_runtime_dependency 'clearwater', '1.0.0.rc4'
-  s.add_development_dependency 'minitest'
-  s.add_development_dependency 'rake'
+  s.add_development_dependency 'minitest', '~> 5.10'
 end
