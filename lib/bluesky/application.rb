@@ -60,7 +60,14 @@ module Bluesky
     #   payload: (Array)  Additional arguments to pass along
     def notify(source, event, *payload)
       try(@delegate, source, event, *payload)
-      puts "#{event} #{payload}" if debug?
+      if debug?
+        message = "#{event} #{payload}"
+        if RUBY_ENGINE == 'opal'
+          `console.log(message)`
+        else
+          puts message
+        end
+      end
     end
 
     # Refreshes (runs render) on the root_view_controller and invokes the block
