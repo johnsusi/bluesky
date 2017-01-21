@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = 'An app framework built on top of opal and clearwater'
   s.authors     = ['John Susi']
   s.email       = 'john@susi.se'
-  s.homepage    = 'http://susi.se/bluesky/'
+  s.homepage    = 'https://johnsusi.github.com/bluesky/'
   s.license     = 'MIT'
   s.executables << 'bluesky'
   s.files       = [
