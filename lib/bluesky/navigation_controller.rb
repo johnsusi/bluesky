@@ -8,7 +8,7 @@ module Bluesky
     def initialize(root_view_controller)
       raise 'NavigationController requires a root_view_controller' unless root_view_controller
       super
-      @children = [root_view_controller]
+      add_child_view_controller(root_view_controller)
     end
 
     def view
