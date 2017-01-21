@@ -10,6 +10,7 @@ module Bluesky
     include DOMHelper
     include DSL
     include ConditionHelper
+    include TryHelper
 
     def self.attribute(name, *args, &block)
       case args.length
