@@ -1,41 +1,28 @@
 require 'test_helper'
 
-class TestViewController < Minitest::Test
+# See test_helper for #appeared?, #disappeared? and #reset!
+module TestViewController
 
-  def test_appear
+  class Constructed < Minitest::Test
 
-    subject = Bluesky::ViewController.new
+    include Bluesky
 
-    assert :disappeared, subject.appearance
+    def setup
+      @subject = ViewController.new
+    end
 
-    subject.begin_appearance_transition(true)
+    def test_appearing_it_appears
+      @subject.begin_appearance_transition(true)
+      @subject.end_appearance_transition()
+      assert @subject.appeared?
+    end
 
-    assert :appearing, subject.appearance
-
-    subject.end_appearance_transition()
-
-    assert :appeared, subject.appearance
-    assert subject.appeared?
-
-  end
-
-  def test_disappear
-
-    subject = Bluesky::ViewController.new
-
-    subject.begin_appearance_transition(true)
-    subject.end_appearance_transition()
-
-    assert :appeared, subject.appearance
-
-    subject.begin_appearance_transition(false)
-
-    assert :disappearing, subject.appearance
-
-    subject.end_appearance_transition()
-
-    assert :disappeared, subject.appearance
-    assert subject.disappeared?
+    def test_add_child_view_controller_reparents_child
+      child = ViewController.new
+      assert_nil child.parent
+      @subject.add_child_view_controller(child)
+      assert_equal @subject, child.parent
+    end
 
   end
 

@@ -1,5 +1,5 @@
 require 'clearwater'
-require_relative './dom_helper'
+require_relative './helpers'
 require_relative './dsl'
 
 module Bluesky
@@ -9,6 +9,7 @@ module Bluesky
     include Clearwater::Component
     include DOMHelper
     include DSL
+    include ConditionHelper
 
     def self.attribute(name, *args, &block)
       case args.length
@@ -57,11 +58,11 @@ module Bluesky
     end
 
     def dispatch(target, action, *payload, &block)
-      parent.try(:dispatch, target, action, *payload, &block)
+      try(parent, :dispatch, target, action, *payload, &block)
     end
 
     def notify(source, event, *payload)
-      parent.try(:notify, source, event, *payload)
+      try(parent, :notify, source, event, *payload)
     end
 
     def begin_appearance_transition(appearing)
@@ -118,7 +119,7 @@ module Bluesky
 
     def navigation_controller
       parent.is_a?(NavigationController) ? parent :
-        parent.try(:navigation_controller)
+        try(parent, :navigation_controller)
     end
 
     # Callbacks

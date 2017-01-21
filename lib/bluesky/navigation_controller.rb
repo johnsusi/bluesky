@@ -5,12 +5,10 @@ module Bluesky
   # Bluesky::NavigationController
   class NavigationController < ViewController
 
-    attr_accessor :root_view_controller
-
     def initialize(root_view_controller)
       raise 'NavigationController requires a root_view_controller' unless root_view_controller
       super
-      @root_view_controller = root_view_controller
+      @children = [root_view_controller]
     end
 
     def view
@@ -37,8 +35,12 @@ module Bluesky
       top_view_controller.end_appearance_transition
     end
 
+    def root_view_controller
+      @children.first
+    end
+
     def top_view_controller
-      @children.last || root_view_controller
+      @children.last
     end
 
     def visible_view_controller
@@ -64,18 +66,20 @@ module Bluesky
         view_controller.end_appearance_transition
         old_view_controller.end_appearance_transition
       end
+      return
     end
 
     def pop_view_controller
-      return nil if top_view_controller == root_view_controller
-      old_view_controller = top_view_controller
-      old_view_controller.begin_appearance_transition(false)
-      old_view_controller.remove_from_parent_view_controller
+      pre { top_view_controller != root_view_controller }
+      popped_view_controller = top_view_controller
+      popped_view_controller.begin_appearance_transition(false)
+      popped_view_controller.remove_from_parent_view_controller()
       top_view_controller.begin_appearance_transition(@appearance == :appeared)
       force_update do
-        top_view_controller.end_appearance_transition
-        old_view_controller.end_appearance_transition
+        top_view_controller.end_appearance_transition()
+        popped_view_controller.end_appearance_transition()
       end
+      return popped_view_controller
     end
 
     def pop_to_view_controller(view_controller)
