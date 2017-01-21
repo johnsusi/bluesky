@@ -35,6 +35,7 @@ module Clearwater
   end
 end
 
+require_relative 'bluesky/dsl.rb'
 require_relative 'bluesky/helpers.rb'
 require_relative 'bluesky/node_builder.rb'
 require_relative 'bluesky/pure_component.rb'
