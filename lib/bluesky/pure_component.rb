@@ -171,12 +171,10 @@ module Bluesky
     end
 
     def mount
-      puts 'mount'
       @mounted = true
     end
 
     def unmount
-      puts 'unmount'
       @mounted = false
     end
 
