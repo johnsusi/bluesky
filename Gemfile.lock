@@ -1,19 +1,19 @@
 PATH
   remote: .
   specs:
-    bluesky (0.0.5)
+    bluesky (0.1.3)
       clearwater (= 1.0.0.rc4)
       opal (~> 0.10)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    bowser (0.2.2)
+    bowser (0.3.0)
       opal (>= 0.7.0, < 0.12.0)
     clearwater (1.0.0.rc4)
       bowser (~> 0.1)
       opal (~> 0.7)
-    concurrent-ruby (1.0.2)
+    concurrent-ruby (1.0.4)
     hike (1.2.3)
     minitest (5.10.1)
     opal (0.10.3)
@@ -22,9 +22,8 @@ GEM
       sprockets (~> 3.1)
       tilt (>= 1.4)
     rack (2.0.1)
-    rake (11.3.0)
     sourcemap (0.1.1)
-    sprockets (3.7.0)
+    sprockets (3.7.1)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     tilt (2.0.5)
@@ -34,8 +33,7 @@ PLATFORMS
 
 DEPENDENCIES
   bluesky!
-  minitest
-  rake
+  minitest (~> 5.10)
 
 BUNDLED WITH
    1.13.3
