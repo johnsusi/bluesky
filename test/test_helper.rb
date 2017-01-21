@@ -1,4 +1,3 @@
-require 'minitest/spec'
 require 'minitest/autorun'
 require 'bluesky/view_controller'
 require 'bluesky/navigation_controller'
