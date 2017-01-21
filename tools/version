@@ -70,8 +70,11 @@ IO.write(version_file, text)
 
 options[:message].gsub!('%s', version)
 
+system("gem build bluesky.gemspec && gem push bluesky-#{version}.gem")
+
 system("git commit #{version_file} -m \"Version #{version}\"")
 
 system("git tag -a v#{version} -m \"#{options[:message]}\"")
 
 system("git push && git push --tags")
+
